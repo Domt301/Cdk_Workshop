@@ -6,6 +6,7 @@ tag_value = os.environ['TAG_VALUE']
 ec2 = boto3.client('ec2')
 
 def lambda_handler(event, context):
+    print('got event: ' + str(event))
     # get all instances with the tag key and value
     response = ec2.describe_instances(Filters=[{'Name': 'tag:' + tag_key, 'Values': [tag_value]}])
     # get the instance ids
