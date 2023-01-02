@@ -22,9 +22,10 @@ class CdkWorkshopStack(Stack):
         # a security group with no ingress or egress rules
         security_group = ec2.SecurityGroup(self, "SecurityGroup", vpc=vpc)
 
-        # four ec2 instances in the private subnets
+        # four ec2 instances in the private subnets with amazon linux 2
         for i in range(4):
-            ec2.Instance(self, "EC2Instance" + str(i), vpc=vpc, instance_type=ec2.InstanceType("t2.micro"), security_group=security_group)
+            ec2.Instance(self, "EC2Instance" + str(i), vpc=vpc, instance_type=ec2.InstanceType("t2.micro"), security_group=security_group, machine_image=ec2.MachineImage.latest_amazon_linux())
+  
 
         # a Tag to identify the instances
         # ec2.Tag.add(self, "Name", "CDKWorkshop")
