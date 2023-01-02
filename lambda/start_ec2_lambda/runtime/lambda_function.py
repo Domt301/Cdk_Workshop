@@ -12,7 +12,9 @@ def lambda_handler(event, context):
     instance_ids = []
     for reservation in response["Reservations"]:
         for instance in reservation["Instances"]:
-            instance_ids.append(instance["InstanceId"])
+            # ensure that instances are not already running or pending or shutting down or stopping or terminated
+            if instance["State"]["Name"] not in ["running", "pending", "shutting-down", "stopping", "terminated"]:
+                instance_ids.append(instance["InstanceId"])
     # start the instances
     ec2.start_instances(InstanceIds=instance_ids)
     print('started your instances: ' + str(instance_ids))
