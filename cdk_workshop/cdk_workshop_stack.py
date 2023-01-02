@@ -1,5 +1,6 @@
 from constructs import Construct
 import aws_cdk as cdk
+import os
 from aws_cdk import (
     Duration,
     Stack,
@@ -8,7 +9,10 @@ from aws_cdk import (
     aws_sns as sns,
     aws_sns_subscriptions as subs,
     aws_ec2 as ec2,
-    aws_lambda as _lambda
+    aws_lambda as _lambda,
+    aws_stepfunctions as sfn,
+    aws_stepfunctions_tasks as sfn_tasks
+  
 )
 
 
@@ -30,9 +34,23 @@ class CdkWorkshopStack(Stack):
   
 
         # a lambda function that starts the ec2 instances
-        start_ec2_lambda = _lambda.Function(self, "StartEC2Lambda", runtime=_lambda.Runtime.PYTHON_3_8, handler="lambda_function.lambda_handler", code=_lambda.Code.from_asset("lambda/start_ec2_lambda"), timeout=Duration.seconds(30), environment={"TAG_KEY": "Group", "TAG_VALUE": "Lambda-Group"})
+        start_ec2_lambda = _lambda.Function(self,
+         "StartEC2Lambda", 
+         runtime=_lambda.Runtime.PYTHON_3_8, 
+         handler="lambda_function.lambda_handler", 
+         code=_lambda.Code.from_asset(
+            os.path.join( "lambda", "start_ec2_lambda", "runtime")
+            ), 
+         timeout=Duration.seconds(30), environment={"TAG_KEY": "Group", "TAG_VALUE": "Lambda-Group"})
         # a lambda function that stops the ec2 instances
-        stop_ec2_lambda = _lambda.Function(self, "StopEC2Lambda", runtime=_lambda.Runtime.PYTHON_3_8, handler="lambda_function.lambda_handler", code=_lambda.Code.from_asset("lambda/stop_ec2_lambda"), timeout=Duration.seconds(30), environment={"TAG_KEY": "Group", "TAG_VALUE": "Lambda-Group"})
+        stop_ec2_lambda = _lambda.Function(self, 
+        "StopEC2Lambda", 
+        runtime=_lambda.Runtime.PYTHON_3_8,
+         handler="lambda_function.lambda_handler", 
+         code=_lambda.Code.from_asset(
+            os.path.join("lambda", "stop_ec2_lambda", "runtime")
+         ), 
+         timeout=Duration.seconds(30), environment={"TAG_KEY": "Group", "TAG_VALUE": "Lambda-Group"})
 
         # permissions for the lambda functions to start and stop ec2 instances
         start_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:StartInstances"], resources=["*"]))
@@ -40,17 +58,22 @@ class CdkWorkshopStack(Stack):
         stop_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:StopInstances"], resources=["*"]))
         stop_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:DescribeInstances"], resources=["*"]))
 
-        # a step function that starts the ec2 instances by invoking the start lambda function
-        start_ec2_step_function = _lambda.StateMachine(self, "StartEC2StepFunction", definition=_lambda.Chain.start(_lambda.Task(self, "StartEC2Task", task=_lambda.InvokeFunction(start_ec2_lambda))))
+   
+
+
+        start_ec2_step_function = sfn.StateMachine(self, "StartEC2StepFunction",
+                                 definition=sfn_tasks.LambdaInvoke(self, "StartEC2Task",
+                                     lambda_function=start_ec2_lambda))
 
         # a step function that stops the ec2 instances by invoking the stop lambda function
-        stop_ec2_step_function = _lambda.StateMachine(self, "StopEC2StepFunction", definition=_lambda.Chain.start(_lambda.Task(self, "StopEC2Task", task=_lambda.InvokeFunction(stop_ec2_lambda))))
+        stop_ec2_step_function = sfn.StateMachine(self, "StopEC2StepFunction",
+                                 definition=sfn_tasks.LambdaInvoke(self, "StopEC2Task",
+                                     lambda_function=stop_ec2_lambda))
 
-        # step function permissions for the lambda functions to start and stop ec2 instances
-        start_ec2_step_function.grant_start_execution(start_ec2_lambda)
-        stop_ec2_step_function.grant_start_execution(stop_ec2_lambda)
 
-        
+        start_ec2_lambda.grant_invoke(start_ec2_step_function)
+        stop_ec2_lambda.grant_invoke(stop_ec2_step_function)
+
 
 
 
