@@ -1,4 +1,5 @@
 from constructs import Construct
+import aws_cdk as cdk
 from aws_cdk import (
     Duration,
     Stack,
@@ -24,7 +25,8 @@ class CdkWorkshopStack(Stack):
 
         # four ec2 instances in the private subnets with amazon linux 2
         for i in range(4):
-            ec2.Instance(self, "EC2Instance" + str(i), vpc=vpc, instance_type=ec2.InstanceType("t2.micro"), security_group=security_group, machine_image=ec2.MachineImage.latest_amazon_linux())
+            ec2_1 = ec2.Instance(self, "EC2Instance" + str(i),vpc=vpc, instance_type=ec2.InstanceType("t2.micro"),security_group=security_group, machine_image=ec2.MachineImage.latest_amazon_linux())
+            cdk.Tags.of(ec2_1).add("Group", "Lambda-Group")
   
 
         # a Tag to identify the instances
