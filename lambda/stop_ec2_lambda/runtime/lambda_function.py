@@ -17,5 +17,7 @@ def lambda_handler(event, context):
             if instance["State"]["Name"] in ["running"]:
                 instance_ids.append(instance["InstanceId"])
     # stop the instances
-    ec2.stop_instances(InstanceIds=instance_ids)
+    # check if there are any instances to stop
+    if len(instance_ids) > 0:
+        ec2.stop_instances(InstanceIds=instance_ids)
     print('stopped your instances: ' + str(instance_ids))
