@@ -50,14 +50,9 @@ class CdkWorkshopStack(Stack):
          timeout=Duration.seconds(30), environment={"TAG_KEY": "Group", "TAG_VALUE": "Lambda-Group"})
 
         # permissions for the lambda functions to start and stop ec2 instances
-        start_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:StartInstances"], resources=["*"]))
-        start_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:DescribeInstances"], resources=["*"]))
-        stop_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:StopInstances"], resources=["*"]))
-        stop_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:DescribeInstances"], resources=["*"]))
-
+        start_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:StartInstances", "ec2:DescribeInstances"], resources=["*"]))
+        stop_ec2_lambda.add_to_role_policy(iam.PolicyStatement(actions=["ec2:StopInstances", "ec2:DescribeInstances"], resources=["*"]))
    
-
-
         start_ec2_step_function = sfn.StateMachine(self, "StartEC2StepFunction",
                                  definition=sfn_tasks.LambdaInvoke(self, "StartEC2Task",
                                      lambda_function=start_ec2_lambda))
