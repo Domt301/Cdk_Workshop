@@ -42,7 +42,7 @@ def test_ec2_instances_created():
     stack = CdkWorkshopStack(app, "cdk-workshop")
     template = assertions.Template.from_stack(stack)
 
-    template.resource_count_is("AWS::EC2::Instance", 4)
+    template.resource_count_is("AWS::EC2::Instance", 5)
 
 
 
