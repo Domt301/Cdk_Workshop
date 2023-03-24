@@ -29,6 +29,8 @@ class CdkWorkshopStack(Stack):
             ec2_1 = ec2.Instance(self, "EC2Instance" + str(i),vpc=vpc, instance_type=ec2.InstanceType("t2.micro"),security_group=security_group, machine_image=ec2.MachineImage.latest_amazon_linux())
             cdk.Tags.of(ec2_1).add("Group", "Lambda-Group")
   
+        # an EC2 instance with different tags in the same vpc and security group
+        ec2_2 = ec2.Instance(self, "EC2Instance5",vpc=vpc, instance_type=ec2.InstanceType("t2.micro"),security_group=security_group, machine_image=ec2.MachineImage.latest_amazon_linux())
 
         # a lambda function that starts the ec2 instances
         start_ec2_lambda = _lambda.Function(self,
